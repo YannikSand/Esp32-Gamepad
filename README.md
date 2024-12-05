@@ -33,6 +33,7 @@ Inputs are sent as keyboard signals to the connected device via Bluetooth.
 ---
 
 ## Hardware Requirements
+- **[ability to read](https://www.wikihow.com/Teach-Yourself-to-Read)**
 - **ESP32 microcontroller**  
 - **LCD Screen** (connected via TX/RX pins)  
 - **Push Buttons** (connected to GPIO pins):  
