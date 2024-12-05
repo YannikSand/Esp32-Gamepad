@@ -1,7 +1,9 @@
 # ESP32 Gamepad with Input Log and Bluetooth Support
 
 ## Overview
-This project implements a custom gamepad using an **ESP32 microcontroller**, providing simple input functionality for PC games via **Bluetooth**. The gamepad features **directional controls**, **ability keys**, and an **input log display** on an LCD. It is ideal for straightforward games or tasks requiring basic keyboard input.
+This project implements a custom gamepad using an **ESP32 microcontroller**, providing simple input functionality for PC games via **Bluetooth**. The gamepad features **directional controls**, **ability keys**, and an **input log display** on an LCD. 
+
+I designed this gamepad specifically to play **Dark Souls™ II: Scholar of the First Sin**, allowing for basic movement, attacks, and item usage in the game. It is also compatible with other games or tasks that support keyboard input. Edit the controls to your likings or needs.
 
 ---
 
@@ -23,7 +25,7 @@ This project implements a custom gamepad using an **ESP32 microcontroller**, pro
    
 2. **LCD Input Log**:  
    The last 5 button presses are displayed on the LCD in real-time. For example:
-  (`_` represents a Space key press).
+(`_` represents a Space key press).
 
 3. **Bluetooth Transmission**:  
 Inputs are sent as keyboard signals to the connected device via Bluetooth.
@@ -49,6 +51,7 @@ Inputs are sent as keyboard signals to the connected device via Bluetooth.
 1. Clone this repository:  
 ```bash
 git clone https://github.com/YannikSand/esp32-gamepad.git
+
 
 
 
