@@ -52,8 +52,7 @@ Inputs are sent as keyboard signals to the connected device via Bluetooth.
 1. Clone this repository:  
 ```bash
 git clone https://github.com/YannikSand/esp32-gamepad.git
-
-
-
-
-
+```
+2. Open the PDF
+3. Use your ability to read
+4. Have fun
