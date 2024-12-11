@@ -4,7 +4,6 @@
 BluetoothSerial SerialBT;
 SoftwareSerial OpenLCD(0, 21); // Set the pins for the LCD (0 is RX, 21 is TX)
 
-// Define pins for buttons
 const int buttonAPin = 17;
 const int buttonWPin = 16;
 const int buttonDPin = 19;
@@ -14,29 +13,25 @@ const int buttonQPin = 13;
 const int buttonSpacePin = 4;
 const int buttonEPin = 27;
 
-// Input log variables
-String inputLog = "";       
-const int maxLogSize = 5;   
-String lastPressedKey = ""; // Tracks the last key added to avoid duplicates
+String inputLog = "";       // Stores the last 5 inputs
+const int maxLogSize = 5;   // Maximum number of characters in the log
+String lastPressedKey = ""; // Tracks the last key sent to avoid duplicates
 
-bool lastConnectionStatus = false;  // Track last known connection status
-unsigned long lastButtonPressTime = 0;  // Track time of last button press
-const unsigned long nullTimeout = 200;  // Timeout for sending null in milliseconds
+unsigned long lastButtonPressTime = 0;  // Time of last button press
+const unsigned long nullTimeout = 200; // Timeout for sending "null" in milliseconds
 
 void setup() {
-  Serial.begin(115200);  // Initialize serial monitor
-  OpenLCD.begin(9600);   // Initialize LCD
+  Serial.begin(115200);
+  OpenLCD.begin(9600);
 
-  // Start Bluetooth
   if (!SerialBT.begin("ESP32 GamePad", true)) {
     Serial.println("Bluetooth initialization failed.");
     OpenLCD.print("Error: Not ready");
   } else {
     Serial.println("Bluetooth initialized successfully.");
-    OpenLCD.print("Ready");  
+    OpenLCD.print("Ready");
   }
 
-  // Set up buttons as inputs with pull-up resistors
   pinMode(buttonAPin, INPUT_PULLUP);
   pinMode(buttonWPin, INPUT_PULLUP);
   pinMode(buttonDPin, INPUT_PULLUP);
@@ -46,100 +41,116 @@ void setup() {
   pinMode(buttonSpacePin, INPUT_PULLUP);
   pinMode(buttonEPin, INPUT_PULLUP);
 
-  // Clear the LCD on startup
   clearLCD();
 }
 
 void loop() {
-  // Store keys to send
   String keysToSend = "";
 
-  // Check each button state and determine which key to add
-  if (digitalRead(buttonAPin) == LOW) {
-    keysToSend = "a";
-  } else if (digitalRead(buttonWPin) == LOW) {
-    keysToSend = "w";
-  } else if (digitalRead(buttonQPin) == LOW) {
-    keysToSend = "q";
-  } else if (digitalRead(buttonSPin) == LOW) {
-    keysToSend = "s";
-  } else if (digitalRead(buttonDPin) == LOW) {
-    keysToSend = "d";
-  } else if (digitalRead(buttonFPin) == LOW) {
-    keysToSend = "f";
-  } else if (digitalRead(buttonSpacePin) == LOW) {
-    keysToSend = "space";
-  } else if (digitalRead(buttonEPin) == LOW) {
-    keysToSend = "e";
+  // Check button states for simultaneous presses
+  bool isWPressed = digitalRead(buttonWPin) == LOW;
+  bool isSpacePressed = digitalRead(buttonSpacePin) == LOW;
+  bool isAPressed = digitalRead(buttonAPin) == LOW;
+  bool isEPressed = digitalRead(buttonEPin) == LOW;
+  bool isDPressed = digitalRead(buttonDPin) == LOW;
+  bool isFPressed = digitalRead(buttonFPin) == LOW;
+  bool isQPressed = digitalRead(buttonQPin) == LOW;
+  bool isSPressed = digitalRead(buttonSPin) == LOW;
+
+  // Combine the keys pressed (check for multiple simultaneous presses)
+  if (isWPressed) {
+    keysToSend += "w";
+  }
+  if (isSpacePressed) {
+    keysToSend += "space";  // Space will be logged for Bluetooth but not for LCD
+  }
+  if (isAPressed) {
+    keysToSend += "a";
+  }
+  if (isEPressed) {
+    keysToSend += "e";
+  }
+  if (isDPressed) {
+    keysToSend += "d";
+  }
+  if (isFPressed) {
+    keysToSend += "f";
+  }
+  if (isQPressed) {
+    keysToSend += "q";
+  }
+  if (isSPressed) {
+    keysToSend += "s";
   }
 
-  // Only update the log if a new key is pressed
+  // If multiple keys are pressed together, combine them into one string (like 'aspace', 'wf', etc.)
   if (keysToSend != "" && keysToSend != lastPressedKey) {
-    lastPressedKey = keysToSend;   // Update the last pressed key
-    updateInputLog(keysToSend);   // Update the input log
-    sendKey(keysToSend);          // Send the key
-    lastButtonPressTime = millis();  // Update the time of the last button press
+    lastPressedKey = keysToSend;
+    updateInputLog(keysToSend);  // Update the log for the LCD (space excluded)
+    sendKey(keysToSend);         // Send the key to Bluetooth (space included)
+    lastButtonPressTime = millis();
   }
 
-  // If no keys are pressed and the timeout has passed, send "null"
+  // Handle "null" timeout
   if (millis() - lastButtonPressTime > nullTimeout && keysToSend == "") {
-    sendKey("null");  
-    lastPressedKey = "";  
+    sendKey("null");
+    lastPressedKey = ""; // Reset the last pressed key to allow repeats
   }
 
-  // Small delay to prevent overloading the CPU
-  delay(10);
+  delay(10); // Small delay to avoid overloading the CPU
 }
 
 // Update the input log and display it on the LCD
 void updateInputLog(const String& key) {
-  // Map "space" to "_" for better display
-  String logKey = key == "space" ? "_" : key;
+  String logKey;
 
-  // Add the new input to the log
+  // Exclude space from the LCD log (space will not be printed on the LCD)
+  if (key == "space") {
+    logKey = "_";  // Represent space as "_" in the LCD log
+  } else {
+    logKey = key;  // Log the key normally for other characters
+  }
+
+  // Add to log and maintain max size
   inputLog += logKey;
-
-  // Ensure the log doesn't exceed max size
   if (inputLog.length() > maxLogSize) {
     inputLog = inputLog.substring(inputLog.length() - maxLogSize);
   }
 
-  // Format the log with spaces between characters
+  // Format the log for LCD (only non-space characters)
   String formattedLog = "";
   for (int i = 0; i < inputLog.length(); i++) {
     formattedLog += inputLog[i];
     if (i < inputLog.length() - 1) {
-      formattedLog += " "; 
+      formattedLog += " ";  // Add space only between characters, not on LCD
     }
   }
 
-  // Update the LCD
   updateLCD(formattedLog);
 }
 
-// Send key press and update the last button press time
+// Send key press over Bluetooth
 void sendKey(const String& keys) {
   static String lastSentKeys = "";
 
-  // Only send the keys if they are different from the last sent keys
   if (keys != lastSentKeys) {
-    SerialBT.println(keys);  
-    Serial.println(keys);   
-    lastSentKeys = keys;    
+    SerialBT.println(keys);  // Send the key combination to Bluetooth
+    Serial.println(keys);    // Print to the serial monitor for debugging
+    lastSentKeys = keys;     // Keep track of the last sent keys
   }
 }
 
 // Clear the LCD
 void clearLCD() {
-  OpenLCD.write(0xFE); 
-  OpenLCD.write(0x01); 
-  delay(10);            
+  OpenLCD.write(0xFE);
+  OpenLCD.write(0x01);
+  delay(10);
 }
 
-// Update the LCD with the current log
+// Update the LCD with the formatted log
 void updateLCD(const String& log) {
-  clearLCD();              
-  OpenLCD.write(0xFE);     
-  OpenLCD.write(0x80);     
-  OpenLCD.print(log);      
+  clearLCD();
+  OpenLCD.write(0xFE);
+  OpenLCD.write(0x80);
+  OpenLCD.print(log);  // Print the log to the LCD (no space shown)
 }
