@@ -15,8 +15,8 @@ const int buttonSpacePin = 4;
 const int buttonEPin = 27;
 
 // Input log variables
-String inputLog = "";       // Stores the last 5 inputs
-const int maxLogSize = 5;   // Maximum number of characters in the log
+String inputLog = "";       
+const int maxLogSize = 5;   
 String lastPressedKey = ""; // Tracks the last key added to avoid duplicates
 
 bool lastConnectionStatus = false;  // Track last known connection status
@@ -33,7 +33,7 @@ void setup() {
     OpenLCD.print("Error: Not ready");
   } else {
     Serial.println("Bluetooth initialized successfully.");
-    OpenLCD.print("Ready");  // Initial message before pairing
+    OpenLCD.print("Ready");  
   }
 
   // Set up buttons as inputs with pull-up resistors
@@ -83,8 +83,8 @@ void loop() {
 
   // If no keys are pressed and the timeout has passed, send "null"
   if (millis() - lastButtonPressTime > nullTimeout && keysToSend == "") {
-    sendKey("null");  // Send "null" if no button is pressed within the timeout
-    lastPressedKey = "";  // Reset last pressed key when no key is pressed
+    sendKey("null");  
+    lastPressedKey = "";  
   }
 
   // Small delay to prevent overloading the CPU
@@ -109,7 +109,7 @@ void updateInputLog(const String& key) {
   for (int i = 0; i < inputLog.length(); i++) {
     formattedLog += inputLog[i];
     if (i < inputLog.length() - 1) {
-      formattedLog += " "; // Add a space between characters
+      formattedLog += " "; 
     }
   }
 
@@ -123,23 +123,23 @@ void sendKey(const String& keys) {
 
   // Only send the keys if they are different from the last sent keys
   if (keys != lastSentKeys) {
-    SerialBT.println(keys);  // Send multiple keys if pressed
-    Serial.println(keys);    // Print the keys to the serial monitor for debugging
-    lastSentKeys = keys;     // Update the last sent keys
+    SerialBT.println(keys);  
+    Serial.println(keys);   
+    lastSentKeys = keys;    
   }
 }
 
 // Clear the LCD
 void clearLCD() {
-  OpenLCD.write(0xFE);  // Command flag
-  OpenLCD.write(0x01);  // Clear screen
-  delay(10);            // Small delay to let the LCD clear
+  OpenLCD.write(0xFE); 
+  OpenLCD.write(0x01); 
+  delay(10);            
 }
 
 // Update the LCD with the current log
 void updateLCD(const String& log) {
-  clearLCD();              // Clear the LCD before writing
-  OpenLCD.write(0xFE);     // Command to set cursor position
-  OpenLCD.write(0x80);     // Set cursor to the beginning of the first line
-  OpenLCD.print(log);      // Print the formatted log to the LCD
+  clearLCD();              
+  OpenLCD.write(0xFE);     
+  OpenLCD.write(0x80);     
+  OpenLCD.print(log);      
 }
